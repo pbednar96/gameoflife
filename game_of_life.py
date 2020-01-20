@@ -1,4 +1,6 @@
 import pygame
+from multiprocessing import Pool, Process
+import multiprocessing as mp
 
 INPUT = 'input_files/input_first.txt'
 CELL_SIZE = 20
@@ -75,19 +77,17 @@ def count_neighbors(matrix, y, x):
     return live_count
 
 
-def next_generation(count_matrix, matrix):
-    for index_x, row in enumerate(count_matrix):
-        for index_y, item in enumerate(row):
-            if item < 2 and matrix[index_x][index_y] == 1:
-                print(matrix[index_x][index_y])
-                matrix[index_x][index_y] = 0
-            elif (item == 2 or item == 3) and matrix[index_x][index_y] == 1:
-                matrix[index_x][index_y] = 1
-            elif item >= 3 and matrix[index_x][index_y] == 1:
-                matrix[index_x][index_y] = 0
-            elif item == 3 and matrix[index_x][index_y] == 0:
-                matrix[index_x][index_y] = 1
-    return matrix
+def next_generation(count_row, row):
+    for index, item in enumerate(count_row):
+        if item < 2 and row[index] == 1:
+            row[index] = 0
+        elif (item == 2 or item == 3) and row[index] == 1:
+            row[index] = 1
+        elif item >= 3 and row[index] == 1:
+            row[index] = 0
+        elif item == 3 and row[index] == 0:
+            row[index] = 1
+    return row
 
 
 if __name__ == "__main__":
@@ -98,22 +98,19 @@ if __name__ == "__main__":
     pygame.display.set_caption('GameOfLife')
     clock = pygame.time.Clock()
     while True:
-        clock.tick(2)
-        [print(row) for row in matrix]
-        print("")
+        clock.tick(3)
+        cell_row = [row for row in matrix]
         count_matrix = evaluate_cell(matrix)
-        # [print(row) for row in count_matrix]
-        # print("")
-        matrix = next_generation(count_matrix, matrix)
-        [print(row) for row in matrix]
-        print("")
+
+        evaluate_row = [row for row in count_matrix]
+        with Pool(mp.cpu_count()) as pool:
+            matrix = pool.starmap(next_generation, zip(evaluate_row, cell_row))
 
         gameDisplay.fill(black)
         for index_x, row in enumerate(matrix):
             for index_y, cell in enumerate(row):
                 if cell == 1:
                     pygame.draw.rect(gameDisplay, white, (index_y * 20, index_x * 20, CELL_SIZE, CELL_SIZE))
-
 
         pygame.display.update()
 
