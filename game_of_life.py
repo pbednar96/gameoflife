@@ -1,5 +1,5 @@
 import pygame
-from multiprocessing.dummy import Pool, Process
+from multiprocessing.dummy import Pool
 import multiprocessing as mp
 from copy import deepcopy
 
