@@ -1,6 +1,7 @@
 import pygame
-from multiprocessing import Pool, Process
+from multiprocessing.dummy import Pool, Process
 import multiprocessing as mp
+from copy import deepcopy
 
 INPUT = 'input_files/input_first.txt'
 CELL_SIZE = 20
@@ -97,11 +98,11 @@ if __name__ == "__main__":
     gameDisplay = pygame.display.set_mode((width, heigth))
     pygame.display.set_caption('GameOfLife')
     clock = pygame.time.Clock()
+    tmp_matrix = deepcopy(matrix)
     while True:
         clock.tick(3)
         cell_row = [row for row in matrix]
         count_matrix = evaluate_cell(matrix)
-
         evaluate_row = [row for row in count_matrix]
         with Pool(mp.cpu_count()) as pool:
             matrix = pool.starmap(next_generation, zip(evaluate_row, cell_row))
@@ -113,6 +114,12 @@ if __name__ == "__main__":
                     pygame.draw.rect(gameDisplay, white, (index_y * 20, index_x * 20, CELL_SIZE, CELL_SIZE))
 
         pygame.display.update()
+
+        if tmp_matrix == matrix:
+
+            break
+        else:
+            tmp_matrix = deepcopy(matrix)
 
     pygame.quit()
     quit()
